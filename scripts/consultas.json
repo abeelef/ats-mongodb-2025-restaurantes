@@ -1,0 +1,120 @@
+{
+    "explicacion_1": "Contar el número de inspecciones por restaurante para decidir la relación One-to-X",
+    "consulta_1": [
+      { "$group": { "_id": "$restaurant_id", "num_inspections": { "$sum": 1 } } },
+      { "$sort": { "num_inspections": -1 } },
+      { "$limit": 10 }
+    ],
+    
+    "explicacion_2": "Crear la colección nueva con los restaurantes y su respectiva array de inspecciones",
+    "consulta_2": [
+      {
+        "$addFields": {
+          "restaurant_id_obj": { "$toObjectId": "$restaurant_id" }
+        }
+      },
+      {
+        "$lookup": {
+          "from": "restaurants",
+          "localField": "restaurant_id_obj",
+          "foreignField": "_id",
+          "as": "restaurant_info"
+        }
+      },
+      {
+        "$unwind": "$restaurant_info"
+      },
+      {
+        "$group": {
+          "_id": "$restaurant_info._id",
+          "name": { "$first": "$restaurant_info.name" },
+          "address": { "$first": "$restaurant_info.address" },
+          "outcode": { "$first": "$restaurant_info.outcode" },
+          "postcode": { "$first": "$restaurant_info.postcode" },
+          "rating": { "$first": "$restaurant_info.rating" },
+          "type_of_food": { "$first": "$restaurant_info.type_of_food" },
+          "URL": { "$first": "$restaurant_info.URL" },
+          "inspections": { "$push": "$$ROOT" }
+        }
+      },
+      {
+        "$out": "restaurants_with_inspections"
+      }
+    ],
+  
+    "explicacion_3": "Verificar que la colección se ha creado correctamente y que los restaurantes tienen inspecciones dentro",
+    "consulta_3": { "inspections": { "$ne": [] } },
+  
+    "explicacion_4": "Crear una validación de esquema para asegurar que los datos en 'restaurants_with_inspections' sean correctos",
+    "consulta_4": {
+      "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["name", "address", "outcode", "postcode", "rating", "type_of_food", "URL", "inspections"],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId",
+            "description": "Debe ser un ObjectId"
+          },
+          "name": {
+            "bsonType": "string",
+            "description": "El nombre del restaurante es obligatorio y debe ser una cadena"
+          },
+          "address": {
+            "bsonType": "string",
+            "description": "La dirección es obligatoria y debe ser una cadena"
+          },
+          "outcode": {
+            "bsonType": "string",
+            "description": "Código de área postal obligatorio"
+          },
+          "postcode": {
+            "bsonType": "string",
+            "description": "El código postal es obligatorio"
+          },
+          "rating": {
+            "bsonType": ["double", "int"],
+            "minimum": 0,
+            "maximum": 10,
+            "description": "La calificación del restaurante debe estar entre 0 y 10"
+          },
+          "type_of_food": {
+            "bsonType": "string",
+            "description": "El tipo de comida es obligatorio"
+          },
+          "URL": {
+            "bsonType": "string",
+            "pattern": "^(http|https)://.*",
+            "description": "Debe ser una URL válida que comience con http o https"
+          },
+          "inspections": {
+            "bsonType": "array",
+            "description": "Debe ser un array con las inspecciones",
+            "items": {
+              "bsonType": "object",
+              "required": ["id", "date", "result", "certificate_number"],
+              "properties": {
+                "id": {
+                  "bsonType": "string",
+                  "description": "ID de la inspección"
+                },
+                "date": {
+                  "bsonType": "string",
+                  "description": "Fecha de la inspección"
+                },
+                "result": {
+                  "bsonType": "string",
+                  "enum": ["Pass", "Fail", "Warning Issued", "Violation Issued", "No Violation Issued"],
+                  "description": "Resultado de la inspección"
+                },
+                "certificate_number": {
+                  "bsonType": "int",
+                  "description": "Número de certificado"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
