@@ -1,12 +1,12 @@
 {
-  "explicacion_1": "Contar el número de inspecciones por restaurante para decidir la relación One-to-X",
+  "explicacion_1": "Contar el nombre d'inspeccions per restaurant per decidir la relació One-to-X",
   "consulta_1": [
     { "$group": { "_id": "$restaurant_id", "num_inspections": { "$sum": 1 } } },
     { "$sort": { "num_inspections": -1 } },
     { "$limit": 10 }
   ],
   
-  "explicacion_2": "Crear la colección nueva con los restaurantes y su respectiva array de inspecciones",
+  "explicacion_2": "Crear la col·lecció nova amb els restaurants i el seu array d'inspeccions",
   "consulta_2": [
     {
       "$addFields": {
@@ -42,73 +42,96 @@
     }
   ],
 
-  "explicacion_3": "Verificar que la colección se ha creado correctamente y que los restaurantes tienen inspecciones dentro",
+  "explicacion_3": "Verificar que la col·lecció s'ha creat correctament i que els restaurants tenen inspeccions",
   "consulta_3": { "inspections": { "$ne": [] } },
 
-  "explicacion_4": "Crear una validación de esquema para asegurar que los datos en 'restaurants_with_inspections' sean correctos",
+  "explicacion_4": "Crear una validació d'esquema per assegurar que les dades a 'restaurants_with_inspections' siguin correctes",
   "consulta_4": {
     "$jsonSchema": {
       "bsonType": "object",
-      "required": ["name", "address", "outcode", "postcode", "rating", "type_of_food", "URL", "inspections"],
+      "required": [
+        "name",
+        "address",
+        "outcode",
+        "postcode",
+        "rating",
+        "type_of_food",
+        "URL",
+        "inspections"
+      ],
       "properties": {
         "_id": {
           "bsonType": "objectId",
-          "description": "Debe ser un ObjectId"
+          "description": "Ha de ser un ObjectId"
         },
         "name": {
           "bsonType": "string",
-          "description": "El nombre del restaurante es obligatorio y debe ser una cadena"
+          "description": "El nom del restaurant és obligatori i ha de ser una cadena"
         },
         "address": {
           "bsonType": "string",
-          "description": "La dirección es obligatoria y debe ser una cadena"
+          "description": "L'adreça és obligatòria i ha de ser una cadena"
         },
         "outcode": {
           "bsonType": "string",
-          "description": "Código de área postal obligatorio"
+          "description": "Codi d'àrea postal obligatori"
         },
         "postcode": {
           "bsonType": "string",
-          "description": "El código postal es obligatorio"
+          "description": "El codi postal és obligatori"
         },
         "rating": {
-          "bsonType": ["double", "int"],
+          "bsonType": [
+            "double",
+            "int"
+          ],
           "minimum": 0,
           "maximum": 10,
-          "description": "La calificación del restaurante debe estar entre 0 y 10"
+          "description": "La qualificació del restaurant ha d'estar entre 0 i 10"
         },
         "type_of_food": {
           "bsonType": "string",
-          "description": "El tipo de comida es obligatorio"
+          "description": "El tipus de menjar és obligatori"
         },
         "URL": {
           "bsonType": "string",
           "pattern": "^(http|https)://.*",
-          "description": "Debe ser una URL válida que comience con http o https"
+          "description": "Ha de ser una URL vàlida que comenci amb http o https"
         },
         "inspections": {
           "bsonType": "array",
-          "description": "Debe ser un array con las inspecciones",
+          "description": "Ha de ser un array amb les inspeccions",
           "items": {
             "bsonType": "object",
-            "required": ["id", "date", "result", "certificate_number"],
+            "required": [
+              "id",
+              "date",
+              "result",
+              "certificate_number"
+            ],
             "properties": {
               "id": {
                 "bsonType": "string",
-                "description": "ID de la inspección"
+                "description": "ID de la inspecció"
               },
               "date": {
                 "bsonType": "string",
-                "description": "Fecha de la inspección"
+                "description": "Data de la inspecció"
               },
               "result": {
                 "bsonType": "string",
-                "enum": ["Pass", "Fail", "Warning Issued", "Violation Issued", "No Violation Issued"],
-                "description": "Resultado de la inspección"
+                "enum": [
+                  "Pass",
+                  "Fail",
+                  "Warning Issued",
+                  "Violation Issued",
+                  "No Violation Issued"
+                ],
+                "description": "Resultat de la inspecció"
               },
               "certificate_number": {
                 "bsonType": "int",
-                "description": "Número de certificado"
+                "description": "Número de certificat"
               }
             }
           }
@@ -117,26 +140,26 @@
     }
   },
 
-  "explicacion_5": "Buscar restaurantes de tipo 'Chinese'",
+  "explicacion_5": "Cercar restaurants de tipus 'Chinese'",
   "consulta_5": { "type_of_food": "Chinese" },
 
-  "explicacion_6": "Listar inspecciones con violaciones y ordenarlas por fecha",
+  "explicacion_6": "Llistar inspeccions amb violacions i ordenar-les per data",
   "consulta_6": [
     { "$unwind": "$inspections" },
     { "$match": { "inspections.result": "Violation Issued" } },
     { "$sort": { "inspections.date": -1 } }
   ],
 
-  "explicacion_7": "Buscar restaurantes con calificación superior a 4",
+  "explicacion_7": "Cercar restaurants amb una qualificació superior a 4",
   "consulta_7": { "rating": { "$gt": 4 } },
 
-  "explicacion_8": "Agrupar restaurantes por tipo de comida y calcular la calificación promedio",
+  "explicacion_8": "Agrupar restaurants per tipus d'aliment i calcular la qualificació mitjana",
   "consulta_8": [
     { "$group": { "_id": "$type_of_food", "average_rating": { "$avg": "$rating" } } },
     { "$sort": { "average_rating": -1 } }
   ],
 
-  "explicacion_9": "Contar el número de inspecciones por resultado y mostrar los porcentajes",
+  "explicacion_9": "Contar el nombre d'inspeccions per resultat i mostrar els percentatges",
   "consulta_9": [
     { "$unwind": "$inspections" },
     {
@@ -172,9 +195,36 @@
   ],
   
   "explicacion_11": "Trobar restaurants amb inspeccions fallides",
-  "consulta_11": { "address": "33 Richmond Road", "inspections.1": { $exists: true } },
+  "consulta_11": { "address": "33 Richmond Road", "inspections.1": { "$exists": true } },
 
   "explicacion_12": "Obtenir restaurants amb una certa qualificació i una inspecció amb un sector determinat",
-  "consulta_12": { "rating": { $gte: 4 }, "inspections.sector": "Grocery-Retail - 808" }
-  
+  "consulta_12": { "rating": { "$gte": 4 }, "inspections.sector": "Grocery-Retail - 808" },
+
+  "explicacion_13": "Comptar quants restaurants tenen més d’una inspecció amb resultats diferents",
+  "consulta_13": [
+    { "$match": { "inspections.1": { "$exists": true } } },
+    { "$project": { 
+        "_id": 1,
+        "uniqueResults": { "$size": { "$setUnion": "$inspections.result" } }
+    }},
+    { "$match": { "uniqueResults": { "$gt": 1 } } },
+    { "$count": "restaurantsAmbResultatsDiferents" }
+  ],
+
+  "explicacion_14": "Cercar restaurants amb una combinació específica de codi postal i tipus d'alimentació i que hagin passat una inspecció",
+  "consulta_14": [
+    { "$match": { 
+        "postcode": "5BW", 
+        "type_of_food": "Grill",
+        "inspections.result": "Pass"
+    }}
+  ],
+
+  "explicacion_15": "Crear índexs per optimitzar les consultes 10 a 14. Els índexs creats són: 1) sobre 'inspections.result'; 2) sobre 'address'; 3) índex compost sobre 'rating' i 'inspections.sector'; i 4) índex compost sobre 'postcode', 'type_of_food' i 'inspections.result'.",
+  "consulta_15": [
+    { "createIndex": "restaurants_with_inspections", "index": { "inspections.result": 1 } },
+    { "createIndex": "restaurants_with_inspections", "index": { "address": 1 } },
+    { "createIndex": "restaurants_with_inspections", "index": { "rating": 1, "inspections.sector": 1 } },
+    { "createIndex": "restaurants_with_inspections", "index": { "postcode": 1, "type_of_food": 1, "inspections.result": 1 } }
+  ]
 }
